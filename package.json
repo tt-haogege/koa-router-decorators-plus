@@ -4,6 +4,7 @@
   "description": "本插件针对@rxts/koa-router-decorators进行更改拓展！",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "homepage": "https://github.com/tt-haogege/koa-router-decorators-plus",
   "scripts": {
     "build": "tsc -d",
     "test": "echo \"Error: no test specified\" && exit 1"
