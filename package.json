@@ -1,0 +1,33 @@
+{
+  "name": "koa-router-decorators-plus",
+  "version": "1.0.2",
+  "description": "本插件针对@rxts/koa-router-decorators进行更改拓展！",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc -d",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "koa",
+    "Controller",
+    "decorators"
+  ],
+  "files": [
+    "lib/**/*"
+  ],
+  "devDependencies": {
+    "@types/koa-bodyparser": "^4.3.10",
+    "@types/koa__router": "^8.0.7",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "@koa/router": "^10.0.0",
+    "@types/koa": "^2.13.4",
+    "koa": "^2.13.1"
+  },
+  "author": "tthaogege",
+  "license": "MIT"
+}
