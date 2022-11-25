@@ -30,6 +30,11 @@ export enum Method {
     PUT = 'put',
 }
 
+export interface RequiredOption {
+    query?: Array<String>,
+    body?: Array<String>
+}
+
 export type Path = string | RegExp
 export interface RequestMap {
     method?: Method | Method[]
@@ -84,7 +89,7 @@ export const Controller = (prefix: string | undefined) => {
     }
 }
 // 路由 url 匹配规则，添加到类成员方法上
-export const paramsRequired = (option: Array<String>) => {
+export const paramsRequired = (option: RequiredOption | Array<String>) => {
     return (
         target: Target,
         propertyKey: string | symbol,
@@ -93,17 +98,33 @@ export const paramsRequired = (option: Array<String>) => {
         const targetFunction: Middleware = descriptor.value
         const route: Array<Route> = target[RoutesKey]
         const requiredParams: Middleware = (ctx: Context, next: Next) => {
-            let data = ctx.request.query
             const errorKeys: Array<any> = []
-            if (Object.keys(data).length === 0) {
-                data = ctx.request.body
-            }
-            option.forEach(item => {
-                const targetParam = data[item as any]
-                if (!targetParam) {
-                    errorKeys.push(item)
+
+            if (!Array.isArray(option)) {
+                Object.keys(option).forEach(item => {
+                    // @ts-ignore
+                    const targetParam = ctx.request[item]
+                    const targetKeys = option[item as keyof RequiredOption] || []
+                    targetKeys.forEach(key => {
+                        const param = targetParam[key as any]
+                        if (!param) {
+                            errorKeys.push(key)
+                        }
+                    })
+                })
+            } else {
+                let data = ctx.request.query
+                const errorKeys: Array<any> = []
+                if (Object.keys(data).length === 0) {
+                    data = ctx.request.body
                 }
-            })
+                option.forEach(item => {
+                    const targetParam = data[item as any]
+                    if (!targetParam) {
+                        errorKeys.push(item)
+                    }
+                })
+            }
             if (errorKeys.length > 0) {
                 ctx.response.status = 400
                 ctx.response.message = `'${errorKeys.join(',')}' is required in the request data`

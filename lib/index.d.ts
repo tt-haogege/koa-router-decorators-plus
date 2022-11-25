@@ -23,6 +23,10 @@ export declare enum Method {
     POST = "post",
     PUT = "put"
 }
+export interface RequiredOption {
+    query?: Array<String>;
+    body?: Array<String>;
+}
 export type Path = string | RegExp;
 export interface RequestMap {
     method?: Method | Method[];
@@ -33,7 +37,7 @@ export type RequestMappingDecorator = (target: Target, propertyKey?: string, des
 export declare const RoutesKey: unique symbol;
 export declare const injectAllRoutes: <T, R>(router: Router<T, R>) => void;
 export declare const Controller: (prefix: string | undefined) => (target: Target) => void;
-export declare const paramsRequired: (option: Array<String>) => (target: Target, propertyKey: string | symbol, descriptor: PropertyDescriptor) => void;
+export declare const paramsRequired: (option: RequiredOption | Array<String>) => (target: Target, propertyKey: string | symbol, descriptor: PropertyDescriptor) => void;
 declare function RequestMapping(requestMap: RequestMap): RequestMappingDecorator;
 declare function RequestMapping(path?: Path, method?: Method | Method[]): RequestMappingDecorator;
 declare const _default: (router: Router, controllerPath: string) => void;
