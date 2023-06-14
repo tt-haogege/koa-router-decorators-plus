@@ -98,7 +98,7 @@ export const paramsRequired = (option: RequiredOption | Array<String>) => {
         const targetFunction: Middleware = descriptor.value
         const route: Array<Route> = target[RoutesKey]
         const requiredParams: Middleware = (ctx: Context, next: Next) => {
-            const errorKeys: Array<any> = []
+            let errorKeys: Array<any> = []
 
             if (!Array.isArray(option)) {
                 Object.keys(option).forEach(item => {
@@ -114,7 +114,6 @@ export const paramsRequired = (option: RequiredOption | Array<String>) => {
                 })
             } else {
                 let data = ctx.request.query
-                const errorKeys: Array<any> = []
                 if (Object.keys(data).length === 0) {
                     data = ctx.request.body
                 }
