@@ -12,12 +12,16 @@ export interface Route {
     path: Path
 }
 
+export type RequiredParamsErrorHandler = (ctx: Context, next: Next, requiredKey?: string[], msg?: string) => void
+
 // eslint-disable-next-line @typescript-eslint/no-type-alias, @typescript-eslint/no-explicit-any
 export type Target = any // type-coverage:ignore-line
 
 export type Routes = Route[] & { path: Path }
 
 const routesList: Routes[] = []
+
+let requiredParamsErrorHandler: RequiredParamsErrorHandler | null = null
 
 export enum Method {
     ALL = 'all',
@@ -59,9 +63,7 @@ export const injectAllRoutes = <T, R>(router: Router<T, R>) => {
             if (typeof routes.path === 'string' && typeof path === 'string') {
                 path = routes.path + path
             }
-
             method.forEach(m => {
-
                 router[m || Method.GET](
                     path,
                     ...(Array.isArray(handler) ? handler : [handler]),
@@ -96,15 +98,14 @@ export const paramsRequired = (option: RequiredOption | Array<String>) => {
         descriptor: PropertyDescriptor,
     ): void => {
         const targetFunction: Middleware = descriptor.value
-        const route: Array<Route> = target[RoutesKey]
+        const route: Array<Route> = target[RoutesKey] || []
         const requiredParams: Middleware = (ctx: Context, next: Next) => {
             let errorKeys: Array<any> = []
 
             if (!Array.isArray(option)) {
-                Object.keys(option).forEach(item => {
-                    // @ts-ignore
-                    const targetParam = ctx.request[item]
-                    const targetKeys = option[item as keyof RequiredOption] || []
+                Object.keys(option).forEach((item: keyof RequiredOption) => {
+                    const targetParam = ctx.request[item] as Record<string, any>
+                    const targetKeys = option[item] || []
                     targetKeys.forEach(key => {
                         const param = targetParam[key as any]
                         if (!param) {
@@ -115,7 +116,7 @@ export const paramsRequired = (option: RequiredOption | Array<String>) => {
             } else {
                 let data = ctx.request.query
                 if (Object.keys(data).length === 0) {
-                    data = ctx.request.body
+                    data = ctx.request.body as any
                 }
                 option.forEach(item => {
                     const targetParam = data[item as any]
@@ -125,6 +126,9 @@ export const paramsRequired = (option: RequiredOption | Array<String>) => {
                 })
             }
             if (errorKeys.length > 0) {
+                if (requiredParamsErrorHandler) {
+                  return requiredParamsErrorHandler(ctx, next, errorKeys, `'${errorKeys.join(',')}' is required in the request data`)
+                }
                 ctx.response.status = 400
                 ctx.response.message = `'${errorKeys.join(',')}' is required in the request data`
                 return
@@ -158,6 +162,7 @@ function RequestMapping(path?: Path | RequestMap, method?: Method | Method[]) {
 
     const requestPath = requestMap.path!
 
+
     return (
         target: Target,
         propertyKey?: string | symbol,
@@ -180,12 +185,11 @@ function RequestMapping(path?: Path | RequestMap, method?: Method | Method[]) {
                 }
                 return
             }
-
             const original: Middleware = descriptor.value
             routes.push({
                 handler: Object.assign(original.bind(target), { original }),
                 method: requestMethods,
-                path: requestPath,
+                path: requestPath || `/${propertyKey as Path}`,
             })
             return
         }
@@ -220,20 +224,28 @@ export default (router: Router, controllerPath: string) => {
     loadCtroller(controllerPath);
     injectAllRoutes(router)
 }
-export function get(url: string) {
-    return RequestMapping(url, Method.GET)
+
+export function setRequiredParamsErrorHandler(callback: RequiredParamsErrorHandler) {
+  if (typeof callback !== 'function') {
+    return console.error('param must be a function.')
+  }
+  requiredParamsErrorHandler = callback;
 }
-export function post(url: string) {
-    return RequestMapping(url, Method.POST)
+
+export function get(url?: string) {
+    return RequestMapping(url || '', Method.GET)
 }
-export function put(url: string) {
-    return RequestMapping(url, Method.PUT)
+export function post(url?: string) {
+    return RequestMapping(url || '', Method.POST)
 }
-export function del(url: string) {
-    return RequestMapping(url, Method.DELETE)
+export function put(url?: string) {
+    return RequestMapping(url || '', Method.PUT)
 }
-export function all(url: string) {
-    return RequestMapping(url, Method.ALL)
+export function del(url?: string) {
+    return RequestMapping(url || '', Method.DELETE)
+}
+export function all(url?: string) {
+    return RequestMapping(url || '', Method.ALL)
 }
 
 export { RequestMapping }

@@ -1,6 +1,6 @@
 /// <reference types="koa__router" />
 import Router from '@koa/router';
-import { Middleware } from 'koa';
+import { Context, Middleware, Next } from 'koa';
 export interface BoundedMiddleware extends Middleware {
     readonly original?: Middleware;
 }
@@ -9,6 +9,7 @@ export interface Route {
     method: Array<Method | undefined>;
     path: Path;
 }
+export type RequiredParamsErrorHandler = (ctx: Context, next: Next, requiredKey?: string[], msg?: string) => void;
 export type Target = any;
 export type Routes = Route[] & {
     path: Path;
@@ -42,9 +43,10 @@ declare function RequestMapping(requestMap: RequestMap): RequestMappingDecorator
 declare function RequestMapping(path?: Path, method?: Method | Method[]): RequestMappingDecorator;
 declare const _default: (router: Router, controllerPath: string) => void;
 export default _default;
-export declare function get(url: string): RequestMappingDecorator;
-export declare function post(url: string): RequestMappingDecorator;
-export declare function put(url: string): RequestMappingDecorator;
-export declare function del(url: string): RequestMappingDecorator;
-export declare function all(url: string): RequestMappingDecorator;
+export declare function setRequiredParamsErrorHandler(callback: RequiredParamsErrorHandler): void;
+export declare function get(url?: string): RequestMappingDecorator;
+export declare function post(url?: string): RequestMappingDecorator;
+export declare function put(url?: string): RequestMappingDecorator;
+export declare function del(url?: string): RequestMappingDecorator;
+export declare function all(url?: string): RequestMappingDecorator;
 export { RequestMapping };
